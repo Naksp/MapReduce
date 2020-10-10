@@ -20,13 +20,13 @@ void Map(const std::string &file_name)
         {
             iss >> token;
             //std::cout << token << std::endl;
-            MR_Emit(token, "1");
+            MapReduce::MR_Emit(token, "1");
         }
     }
     fp.close();
 }
 
-void Reduce(const std::string &key, Getter get_next, int partition_number)
+void Reduce(const std::string &key, MapReduce::Getter get_next, int partition_number)
 {
     int count = 0;
     std::string value;
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 {
     if (argc > 1)
     {
-        Map(argv[1]);
+        MapReduce::MR_Run(argc, argv, Map, 10, Reduce, 10, MapReduce::MR_DefaultHashPartition);
     }
     else
     {
