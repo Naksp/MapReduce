@@ -7,11 +7,19 @@
 
 #include "MapReduce.hpp"
 
-typedef struct
+MapReduce::MapReduce(Mapper map_function, uint num_mappers,
+                     Reducer reduce_function, uint num_reducers,
+                     Partitioner partition_function) :
+                     map_function(map_function), num_mappers(num_mappers),
+                     reduce_function(reduce_function), num_reducers(num_reducers),
+                     partition_function(partition_function)
 {
-    std::string &key;
-    std::string &value;
-} KVpair;
+
+}
+
+MapReduce::~MapReduce()
+{
+}
 
 void map_thread_start(void* arg)
 {
@@ -31,11 +39,11 @@ unsigned long MapReduce::MR_DefaultHashPartition(const std::string &key, int num
 }
 
 void MapReduce::MR_Run(int argc, char *argv[],
-                       Mapper map_function, uint num_mappers,
-                       Reducer reduce_function, uint num_reducers,
-                       Partitioner partition_function)
+                       Mapper map, uint num_map,
+                       Reducer reduce, uint num_red,
+                       Partitioner partition)
 {
 
     // Initialize partitions
-    auto partitions = std::make_shared<std::vector<std::string>>();
+    partitions = std::make_shared<std::vector<std::string>>();
 }

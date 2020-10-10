@@ -2,8 +2,11 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <memory>
 
 #include "MapReduce.hpp"
+
+std::unique_ptr<MapReduce> map_reduce;
 
 void Map(const std::string &file_name)
 {
@@ -20,7 +23,7 @@ void Map(const std::string &file_name)
         {
             iss >> token;
             //std::cout << token << std::endl;
-            MapReduce::MR_Emit(token, "1");
+            map_reduce->MR_Emit(token, "1");
         }
     }
     fp.close();
@@ -41,7 +44,7 @@ int main(int argc, char* argv[])
 {
     if (argc > 1)
     {
-        MapReduce::MR_Run(argc, argv, Map, 10, Reduce, 10, MapReduce::MR_DefaultHashPartition);
+        map_reduce = std::make_unique<MapReduce>(Map, 10, Reduce, 10, MapReduce::MR_DefaultHashPartition);
     }
     else
     {
