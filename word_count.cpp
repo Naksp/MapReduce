@@ -44,7 +44,9 @@ int main(int argc, char* argv[])
 {
     if (argc > 1)
     {
-        map_reduce = std::make_unique<MapReduce>(Map, 10, Reduce, 10, MapReduce::MR_DefaultHashPartition);
+        map_reduce = std::make_unique<MapReduce>(argc, argv, Map, 10, Reduce, 10, MapReduce::MR_DefaultHashPartition);
+        map_reduce->MR_Run();
+        
     }
     else
     {
