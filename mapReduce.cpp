@@ -30,7 +30,7 @@ void MapReduce::partition_add(uint partition_num, KVpair pair)
 {
     partition_lock.lock();
     auto it = partitions->begin() + partition_num;
-    partitions->insert(it, pair);
+    partitions->at(partition_num).push_back(pair);
     partition_lock.unlock();
 }
 
@@ -63,6 +63,36 @@ void* MapReduce::map_thread_start(uint num)
     return NULL;
 }
 
+void* MapReduce::reduce_thread_start(uint partition_num)
+{
+    std::string key;
+    // Iterate over pairs and call reduce_function
+    for (auto& pair : partitions->at(partition_num))
+    {
+        // Skip to next pair with different key
+        if (pair != partitions->at(partition_num).at(0))
+        {
+            if (pair.first == key)
+            {
+                continue;
+            }
+        }
+        // Call reduce_function on key
+        key = pair.first;
+        reduce_lock.lock();
+        reduce_function(key, &MapReduce::reduce_getter, partition_num);
+        reduce_lock.unlock();
+    }
+}
+
+std::string MapReduce::reduce_getter(const std::string &key, uint partition_num)
+{
+    if (partition_num >= num_reducers || partition_num < 0)
+    {
+        return NULL;
+    }
+}
+
 void MapReduce::MR_Emit(const std::string &key, const std::string &value)
 {
     //std::cout << key << " " << value << std::endl;
@@ -82,17 +112,17 @@ void MapReduce::MR_Run()
 {
 
     // Initialize partitions
-    partitions = std::make_shared<std::vector<KVpair>>();
+    partitions = std::make_shared<std::vector<std::vector<KVpair>>>();
     partitions->reserve(num_mappers);
 
-    std::thread threads[num_mappers];
 
     // Start mappers
+    std::thread map_threads[num_mappers];
     for (uint i = 0; i < num_mappers; i++)
     {
-        threads[i] = std::thread(&MapReduce::map_thread_start, this, i+1);
+        map_threads[i] = std::thread(&MapReduce::map_thread_start, this, i+1);
     }
-    for (auto& th : threads)
+    for (auto& th : map_threads)
     {
         th.join();
     }
@@ -100,4 +130,14 @@ void MapReduce::MR_Run()
     // Sort partitions
     std::sort (partitions->begin(), partitions->end());
 
+    // Start reducers
+    std::thread reduce_threads[num_reducers];
+    for (uint i = 0; i < num_reducers; i++)
+    {
+        reduce_threads[i] = std::thread(&MapReduce::reduce_thread_start, this, i);
+    }
+    for (auto& th : reduce_threads)
+    {
+        th.join();
+    }
 }

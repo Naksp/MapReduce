@@ -9,7 +9,7 @@
 class MapReduce
 {
     public:
-        typedef std::string (*Getter)(const std::string &key, int partition_number);
+        typedef std::string (MapReduce::*Getter)(const std::string &key, uint partition_number);
         typedef void (*Mapper)(const std::string &file_name);
         typedef void (*Reducer)(const std::string &key, Getter get_func, int partition_number);
         typedef unsigned long (*Partitioner)(const std::string &key, int num_partitions);
@@ -34,6 +34,7 @@ class MapReduce
         static unsigned long MR_DefaultHashPartition(const std::string &key, int num_partitions);
 
         void MR_Run();
+        std::string reduce_getter(const std::string &key, uint partition_num);
     
     private:
         /**
@@ -46,6 +47,13 @@ class MapReduce
          * Starting function for mapper threads
          */
         void* map_thread_start(uint num);
+
+        /**
+         * Starting function for reducer threads
+         * @param parition_num Partition for reducer to work on
+         */
+        void* reduce_thread_start(uint partition_num);
+
 
         /**
          * Thread-safe insert to partition vector
@@ -66,8 +74,8 @@ class MapReduce
 
         uint curr_file;
 
-        std::mutex partition_lock, map_lock;
-        std::shared_ptr<std::vector<KVpair>> partitions;
+        std::mutex partition_lock, map_lock, reduce_lock;
+        std::shared_ptr<std::vector<std::vector<KVpair>>> partitions;
 
 };
 

@@ -33,7 +33,7 @@ void Reduce(const std::string &key, MapReduce::Getter get_next, int partition_nu
 {
     int count = 0;
     std::string value;
-    while (!(value = get_next(key, partition_number)).empty())
+    while (!(value = (map_reduce->get_next(key, partition_number)).empty())
     {
         count++;
     }
