@@ -29,7 +29,6 @@ MapReduce::~MapReduce()
 void MapReduce::partition_add(uint partition_num, KVpair pair)
 {
     partition_lock.lock();
-    auto it = partitions->begin() + partition_num;
     partitions->at(partition_num).push_back(pair);
     partition_lock.unlock();
 }
@@ -65,39 +64,52 @@ void* MapReduce::map_thread_start(uint num)
 
 void* MapReduce::reduce_thread_start(uint partition_num)
 {
-    std::string key;
-    // Iterate over pairs and call reduce_function
-    for (auto& pair : partitions->at(partition_num))
-    {
-        // Skip to next pair with different key
-        if (pair != partitions->at(partition_num).at(0))
-        {
-            if (pair.first == key)
-            {
-                continue;
-            }
-        }
-        // Call reduce_function on key
-        key = pair.first;
-        reduce_lock.lock();
-        reduce_function(key, &MapReduce::reduce_getter, partition_num);
-        reduce_lock.unlock();
-    }
-}
-
-std::string MapReduce::reduce_getter(const std::string &key, uint partition_num)
-{
-    if (partition_num >= num_reducers || partition_num < 0)
+    if (partitions->at(partition_num).empty())
     {
         return NULL;
     }
+
+    thread_local InIter key_begin = partitions->at(partition_num).begin();
+    thread_local InIter key_end = key_begin;
+
+    thread_local std::vector<KVpair>::iterator it = partitions->at(partition_num).begin();
+    thread_local std::string key = "";
+
+    for (; true; it++)
+    {
+        // Set key if it's first in partition then iterate
+        if (partitions->at(partition_num).begin() == it)
+        {
+            key = it->first;
+            continue;
+        }
+        // Iterate until next key is found
+        if (key == it->first)
+        {
+            continue;
+        }
+        else
+        {
+            key_end = it;
+        }
+        // Call reduce_function for range of key
+        reduce_lock.lock();
+        reduce_function(key, key_begin, key_end, partition_num);
+        reduce_lock.unlock();
+        // Set up for next key
+        if (it == partitions->at(partition_num).end())
+        {
+            break;
+        }
+        key_begin = it;
+        key = it->first;
+    }
+    return NULL;
 }
 
 void MapReduce::MR_Emit(const std::string &key, const std::string &value)
 {
-    //std::cout << key << " " << value << std::endl;
     uint partition_num = partition_function(key, num_reducers);
-    //KVpair pair(key, value);
     partition_add(partition_num, std::make_pair(key, value));
 }
 
@@ -113,7 +125,10 @@ void MapReduce::MR_Run()
 
     // Initialize partitions
     partitions = std::make_shared<std::vector<std::vector<KVpair>>>();
-    partitions->reserve(num_mappers);
+    for (uint i = 0; i < num_reducers; i++)
+    {
+        partitions->push_back(std::vector<KVpair>());
+    }
 
 
     // Start mappers
@@ -128,7 +143,22 @@ void MapReduce::MR_Run()
     }
 
     // Sort partitions
-    std::sort (partitions->begin(), partitions->end());
+    for (auto& partition : *partitions)
+    {
+        std::sort (partition.begin(), partition.end());
+    }
+
+    int num = 0;
+    for (auto& p1 : *partitions)
+    {
+        std::cout << "Partition " << num << ":" << std::endl;
+        for (auto& p2 : p1)
+        {
+            std::cout << "\t" << p2.first << ", " << p2.second << std::endl;
+        }
+        num++;
+    }
+    
 
     // Start reducers
     std::thread reduce_threads[num_reducers];

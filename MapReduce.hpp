@@ -9,17 +9,20 @@
 class MapReduce
 {
     public:
-        typedef std::string (MapReduce::*Getter)(const std::string &key, uint partition_number);
+        using KVpair = std::pair<std::string /*key*/, std::string /*value*/>;
+
+        using InIter = std::vector<KVpair>::const_iterator;
+
         typedef void (*Mapper)(const std::string &file_name);
-        typedef void (*Reducer)(const std::string &key, Getter get_func, int partition_number);
+        typedef void (*Reducer)(const std::string &key, const InIter begin, const InIter end);
         typedef unsigned long (*Partitioner)(const std::string &key, int num_partitions);
 
-        //typedef struct { const std::string &key, &value; } KVpair;
-        //struct KVpair{ const std::string &key, &value; };
-        using KVpair = std::pair<std::string /*key*/, std::string /*value*/>;
 
         /**
          * MapReduce Constructor
+         * 
+         * @param argc  argc from caller
+         * @param argv  argv from caller
          */
         MapReduce(int argc, char *argv[], Mapper map_function, uint num_mappers,
                   Reducer reduce_function, uint num_reducers,
@@ -34,7 +37,6 @@ class MapReduce
         static unsigned long MR_DefaultHashPartition(const std::string &key, int num_partitions);
 
         void MR_Run();
-        std::string reduce_getter(const std::string &key, uint partition_num);
     
     private:
         /**
@@ -49,7 +51,9 @@ class MapReduce
         void* map_thread_start(uint num);
 
         /**
-         * Starting function for reducer threads
+         * Starting function for reducer threads. 
+         * Calls the reduce function given from caller.
+         * 
          * @param parition_num Partition for reducer to work on
          */
         void* reduce_thread_start(uint partition_num);
@@ -67,9 +71,9 @@ class MapReduce
         uint argc; // argc from caller
         char **argv; // argv from caller. argv[1-n] are file names.
         Mapper map_function;
-        uint num_mappers;
+        uint num_mappers;   // Number of mapper threads to create
         Reducer reduce_function;
-        uint num_reducers;
+        uint num_reducers;  // Number of reducer threads to create
         Partitioner partition_function;
 
         uint curr_file;

@@ -22,21 +22,22 @@ void Map(const std::string &file_name)
         while (!iss.eof())
         {
             iss >> token;
-            //std::cout << token << std::endl;
             map_reduce->MR_Emit(token, "1");
         }
     }
     fp.close();
 }
 
-void Reduce(const std::string &key, MapReduce::Getter get_next, int partition_number)
+void Reduce(const std::string &key, MapReduce::InIter it, MapReduce::InIter end)
 {
     int count = 0;
     std::string value;
-    while (!(value = (map_reduce->get_next(key, partition_number)).empty())
+
+    for (;it != end; it++)
     {
-        count++;
+        count += std::stoi(it->second);
     }
+
     std::cout << key << " " << count << std::endl;
 }
 
