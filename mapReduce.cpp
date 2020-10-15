@@ -84,7 +84,7 @@ void* MapReduce::reduce_thread_start(uint partition_num)
             continue;
         }
         // Iterate until next key is found
-        if (key == it->first)
+        if (it != partitions->at(partition_num).end() && key == it->first)
         {
             continue;
         }
@@ -94,7 +94,7 @@ void* MapReduce::reduce_thread_start(uint partition_num)
         }
         // Call reduce_function for range of key
         reduce_lock.lock();
-        reduce_function(key, key_begin, key_end, partition_num);
+        reduce_function(key, key_begin, key_end);
         reduce_lock.unlock();
         // Set up for next key
         if (it == partitions->at(partition_num).end())
@@ -148,6 +148,7 @@ void MapReduce::MR_Run()
         std::sort (partition.begin(), partition.end());
     }
 
+    /**
     int num = 0;
     for (auto& p1 : *partitions)
     {
@@ -158,6 +159,7 @@ void MapReduce::MR_Run()
         }
         num++;
     }
+    */
     
 
     // Start reducers
