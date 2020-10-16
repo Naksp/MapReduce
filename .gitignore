@@ -1,0 +1,6 @@
+*.txt
+.vscode/
+wordcount
+*.out
+*.in
+docs/latex
