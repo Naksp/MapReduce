@@ -51,7 +51,7 @@ std::string MapReduce::get_next_file_name()
     return file;
 }
 
-void* MapReduce::map_thread_start(uint num)
+void* MapReduce::map_thread_start()
 {
     std::string file_name;
     while (!(file_name = get_next_file_name()).empty())
@@ -135,7 +135,7 @@ void MapReduce::MR_Run()
     std::thread map_threads[num_mappers];
     for (uint i = 0; i < num_mappers; i++)
     {
-        map_threads[i] = std::thread(&MapReduce::map_thread_start, this, i+1);
+        map_threads[i] = std::thread(&MapReduce::map_thread_start, this);
     }
     for (auto& th : map_threads)
     {
@@ -147,20 +147,6 @@ void MapReduce::MR_Run()
     {
         std::sort (partition.begin(), partition.end());
     }
-
-    /**
-    int num = 0;
-    for (auto& p1 : *partitions)
-    {
-        std::cout << "Partition " << num << ":" << std::endl;
-        for (auto& p2 : p1)
-        {
-            std::cout << "\t" << p2.first << ", " << p2.second << std::endl;
-        }
-        num++;
-    }
-    */
-    
 
     // Start reducers
     std::thread reduce_threads[num_reducers];
