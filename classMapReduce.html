@@ -93,8 +93,8 @@ typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" 
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a91384c97a108df313fc382a65a496644"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMapReduce.html#a91384c97a108df313fc382a65a496644">MapReduce</a> (int argc, char *argv[], <a class="el" href="classMapReduce.html#a7fe422ff6454183d06b9eb8f99fa56d7">Mapper</a> map_function, uint num_mappers, <a class="el" href="classMapReduce.html#ab13e571e312bd25d51262c1faf0ce371">Reducer</a> reduce_function, uint num_reducers, <a class="el" href="classMapReduce.html#a5bdd9d96b483e2c3a88d35b25d115953">Partitioner</a> partition_function)</td></tr>
-<tr class="separator:a91384c97a108df313fc382a65a496644"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4bf5f533e0a349bd1ca496b38c8be723"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMapReduce.html#a4bf5f533e0a349bd1ca496b38c8be723">MapReduce</a> (std::vector&lt; char * &gt; files, <a class="el" href="classMapReduce.html#a7fe422ff6454183d06b9eb8f99fa56d7">Mapper</a> map_function, uint num_mappers, <a class="el" href="classMapReduce.html#ab13e571e312bd25d51262c1faf0ce371">Reducer</a> reduce_function, uint num_reducers, <a class="el" href="classMapReduce.html#a5bdd9d96b483e2c3a88d35b25d115953">Partitioner</a> partition_function)</td></tr>
+<tr class="separator:a4bf5f533e0a349bd1ca496b38c8be723"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04dba4a0e4b5a40ed17541aa45add22c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMapReduce.html#a04dba4a0e4b5a40ed17541aa45add22c">~MapReduce</a> ()</td></tr>
 <tr class="separator:a04dba4a0e4b5a40ed17541aa45add22c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7a4789c8619939f679857d45f729718"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMapReduce.html#ad7a4789c8619939f679857d45f729718">MR_Emit</a> (const std::string &amp;key, const std::string &amp;value)</td></tr>
@@ -130,8 +130,8 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a91384c97a108df313fc382a65a496644"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91384c97a108df313fc382a65a496644">&#9670;&nbsp;</a></span>MapReduce()</h2>
+<a id="a4bf5f533e0a349bd1ca496b38c8be723"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4bf5f533e0a349bd1ca496b38c8be723">&#9670;&nbsp;</a></span>MapReduce()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -139,14 +139,8 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">MapReduce::MapReduce </td>
           <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>argc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>argv</em>[], </td>
+          <td class="paramtype">std::vector&lt; char * &gt;&#160;</td>
+          <td class="paramname"><em>files</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -189,7 +183,7 @@ Static Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">argc</td><td>argc from caller </td></tr>
-    <tr><td class="paramname">argv</td><td>argv from caller </td></tr>
+    <tr><td class="paramname">files</td><td>array of file names to work on </td></tr>
     <tr><td class="paramname">map_function</td><td>Mapper function to be called by mappper threads </td></tr>
     <tr><td class="paramname">num_mappers</td><td>number of mapper threads to create </td></tr>
     <tr><td class="paramname">reduce_function</td><td>Reduce function to be called by reduce threads </td></tr>
