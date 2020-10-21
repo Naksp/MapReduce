@@ -38,7 +38,7 @@ class MapReduce
          * MapReduce Constructor
          * 
          * \param argc  argc from caller
-         * \param argv  argv from caller
+         * \param files array of file names to work on
          * \param map_function  Mapper function to be called by mappper threads
          * \param num_mappers   number of mapper threads to create
          * \param reduce_function   Reduce function to be called by reduce threads
@@ -46,7 +46,7 @@ class MapReduce
          * \param partition_function    Partitioner function to be called
          * 
          */
-        MapReduce(int argc, char *argv[], Mapper map_function, uint num_mappers,
+        MapReduce(std::vector<char*> files, Mapper map_function, uint num_mappers,
                   Reducer reduce_function, uint num_reducers,
                   Partitioner partition_function);
         /** 
@@ -91,6 +91,7 @@ class MapReduce
          */
         void* map_thread_start();
 
+
         /**
          * \brief Starting function for reducer threads. 
          * Calls the reduce function given by caller.
@@ -99,6 +100,7 @@ class MapReduce
          */
         void* reduce_thread_start(uint partition_num);
 
+        void call_reduce_function(std::string key, InIter begin, InIter end);
 
         /**
          * Thread-safe insert to partition vector
@@ -110,7 +112,7 @@ class MapReduce
 
     private:
         uint argc; // argc from caller
-        char **argv; // argv from caller. argv[1-n] are file names.
+        std::vector<char*> file_names; // Names of files to work on
         Mapper map_function;
         uint num_mappers;   // Number of mapper threads to create
         Reducer reduce_function;
@@ -127,7 +129,7 @@ class MapReduce
         /**
          * Main data structure
          */
-        std::shared_ptr<std::vector<std::vector<KVpair>>> partitions;
+        std::unique_ptr<std::vector<std::vector<KVpair>>> partitions;
 
 };
 

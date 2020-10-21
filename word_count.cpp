@@ -2,6 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
+#include <string.h>
 #include <memory>
 
 #include "MapReduce.hpp"
@@ -43,15 +45,53 @@ void Reduce(const std::string &key, MapReduce::InIter it, MapReduce::InIter end)
 
 int main(int argc, char* argv[])
 {
-    if (argc > 1)
-    {
-        map_reduce = std::make_unique<MapReduce>(argc, argv, Map, 10, Reduce, 10, MapReduce::MR_DefaultHashPartition);
-        map_reduce->MR_Run();
-        
+    try {
+        if (argc > 1)
+        {
+            uint num_mappers = 10;
+            uint num_reducers = 10;
+            uint file_start_index = 1;
+
+            for (int i = 0; i < argc; i++)
+            {
+                if (strcmp(argv[i], "-m") == 0)
+                {
+                    num_mappers = std::stoi(argv[i+1]);
+                    if (num_mappers <= 0)
+                    {
+                        throw std::invalid_argument("");
+                    }
+                    file_start_index = i + 2;
+                    i++;
+                    continue;
+                }
+                if (strcmp(argv[i], "-r") == 0)
+                {
+                    num_reducers = std::stoi(argv[i+1]);
+                    if (num_reducers <= 0)
+                    {
+                        throw std::invalid_argument("");
+                    }
+                    file_start_index = i + 2;
+                    i++;
+                    continue;
+                }
+            }
+            //char* files[argc-file_start_index];
+            std::vector<char*> files(argv + file_start_index, argv + argc);
+            //std::copy(argv + file_start_index, argv + argc, files);
+            map_reduce = std::make_unique<MapReduce>(files, Map, num_mappers, Reduce, num_reducers, MapReduce::MR_DefaultHashPartition);
+            map_reduce->MR_Run();
+            
+        }
+        else
+        {
+            std::cerr << "Usage: ./word_count [-m][num mappers][-r][num reducers][FILE NAME]" << std::endl;
+        }
     }
-    else
+    catch (const std::invalid_argument& ia)
     {
-        std::cout << "Usage: ./word_count [FILE NAME]" << std::endl;
+        std::cerr << "Number of mappers and reducers must be an integer greater than 0";
     }
 
     return 0;

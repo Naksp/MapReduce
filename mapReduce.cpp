@@ -10,16 +10,16 @@
 
 #include "MapReduce.hpp"
 
-MapReduce::MapReduce(int argc, char *argv[], 
+MapReduce::MapReduce(std::vector<char*> files, 
                      Mapper map_function, uint num_mappers,
                      Reducer reduce_function, uint num_reducers,
                      Partitioner partition_function) :
-                     argc(argc), argv(argv),
+                     file_names(files),
                      map_function(map_function), num_mappers(num_mappers),
                      reduce_function(reduce_function), num_reducers(num_reducers),
                      partition_function(partition_function)
 {
-    curr_file = 1;
+    curr_file = 0;
 }
 
 MapReduce::~MapReduce()
@@ -28,25 +28,23 @@ MapReduce::~MapReduce()
 
 void MapReduce::partition_add(uint partition_num, KVpair pair)
 {
-    partition_lock.lock();
+    std::lock_guard<std::mutex> lk(partition_lock);
     partitions->at(partition_num).push_back(pair);
-    partition_lock.unlock();
 }
 
 std::string MapReduce::get_next_file_name()
 {
     std::string file;
-    map_lock.lock();
-    if (curr_file == argc)
+    std::lock_guard<std::mutex> lk(map_lock);
+    if (curr_file == file_names.size())
     {
         file = "";
     }
     else
     {
-        file = argv[curr_file];
+        file = file_names.at(curr_file);
         curr_file++;
     }
-    map_lock.unlock();
     
     return file;
 }
@@ -93,9 +91,7 @@ void* MapReduce::reduce_thread_start(uint partition_num)
             key_end = it;
         }
         // Call reduce_function for range of key
-        reduce_lock.lock();
-        reduce_function(key, key_begin, key_end);
-        reduce_lock.unlock();
+        call_reduce_function(key, key_begin, key_end);
         // Set up for next key
         if (it == partitions->at(partition_num).end())
         {
@@ -105,6 +101,12 @@ void* MapReduce::reduce_thread_start(uint partition_num)
         key = it->first;
     }
     return NULL;
+}
+
+void MapReduce::call_reduce_function(std::string key, InIter begin , InIter end)
+{
+        std::lock_guard<std::mutex> lk(reduce_lock);
+        reduce_function(key, begin, end);
 }
 
 void MapReduce::MR_Emit(const std::string &key, const std::string &value)
@@ -124,7 +126,7 @@ void MapReduce::MR_Run()
 {
 
     // Initialize partitions
-    partitions = std::make_shared<std::vector<std::vector<KVpair>>>();
+    partitions = std::make_unique<std::vector<std::vector<KVpair>>>();
     for (uint i = 0; i < num_reducers; i++)
     {
         partitions->push_back(std::vector<KVpair>());
